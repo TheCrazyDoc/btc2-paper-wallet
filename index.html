@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>BTC2 Paper Wallet Generator</title>
+  <script src="https://cdn.jsdelivr.net/npm/bitcoinjs-lib@6.1.0/index.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+  <style>
+    body {
+      background: #111;
+      color: #f80;
+      font-family: monospace;
+      text-align: center;
+      padding: 2em;
+    }
+    .wallet {
+      background: #222;
+      border-radius: 16px;
+      padding: 2em;
+      margin: auto;
+      max-width: 600px;
+    }
+    .qr {
+      margin: 1em;
+    }
+    button {
+      background: #f80;
+      color: #000;
+      border: none;
+      padding: 0.75em 1.5em;
+      font-weight: bold;
+      border-radius: 8px;
+      margin-top: 1.5em;
+      cursor: pointer;
+    }
+    .keybox {
+      word-break: break-all;
+      font-size: 0.9em;
+    }
+  </style>
+</head>
+<body>
+  <h1>BTC2 Paper Wallet Generator</h1>
+  <div class="wallet" id="wallet">
+    <h3>Public BTC2 Address</h3>
+    <div id="addrQR" class="qr"></div>
+    <div id="address" class="keybox"></div>
+
+    <h3>Private Key (WIF - Compressed)</h3>
+    <div id="privQR" class="qr"></div>
+    <div id="privateKey" class="keybox"></div>
+
+    <button onclick="generateWallet()">Generate New Wallet</button>
+  </div>
+
+  <script>
+    function generateWallet() {
+      const keyPair = bitcoin.ECPair.makeRandom({ compressed: true });
+      const { address } = bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey });
+      const wif = keyPair.toWIF();
+
+      document.getElementById("address").textContent = address;
+      document.getElementById("privateKey").textContent = wif;
+
+      QRCode.toCanvas(document.getElementById("addrQR"), address);
+      QRCode.toCanvas(document.getElementById("privQR"), wif);
+    }
+
+    // Auto-generate on page load
+    generateWallet();
+  </script>
+</body>
+</html>
