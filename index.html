@@ -70,21 +70,30 @@
 
   <script>
     function generateWallet() {
+      // Clear previous QR codes
+      document.getElementById("addrQR").innerHTML = "";
+      document.getElementById("privQR").innerHTML = "";
+
+      // Generate key pair
       const keyPair = bitcoinjs.ECPair.makeRandom({ compressed: true });
       const { address } = bitcoinjs.payments.p2pkh({ pubkey: keyPair.publicKey });
       const wif = keyPair.toWIF();
 
-      // Set text values
+      // Display address and WIF
       document.getElementById("address").textContent = address;
       document.getElementById("privateKey").textContent = wif;
 
-      // Clear old QR
-      document.getElementById("addrQR").innerHTML = "";
-      document.getElementById("privQR").innerHTML = "";
-
-      // Generate new QR
-      new QRCode(document.getElementById("addrQR"), address);
-      new QRCode(document.getElementById("privQR"), wif);
+      // Generate QR codes
+      new QRCode(document.getElementById("addrQR"), {
+        text: address,
+        width: 128,
+        height: 128
+      });
+      new QRCode(document.getElementById("privQR"), {
+        text: wif,
+        width: 128,
+        height: 128
+      });
     }
 
     function copyText(id) {
@@ -94,8 +103,8 @@
       });
     }
 
-    // Auto-generate on load
-    generateWallet();
+    // Auto-generate wallet on load
+    window.onload = generateWallet;
   </script>
 </body>
 </html>
