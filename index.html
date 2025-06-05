@@ -69,31 +69,38 @@
   </div>
 
   <script>
-    function generateWallet() {
-      // Clear previous QR codes
-      document.getElementById("addrQR").innerHTML = "";
-      document.getElementById("privQR").innerHTML = "";
+    // Custom BTC2 network parameters (same as Bitcoin unless BTC2 changed them)
+    const btc2Network = {
+      messagePrefix: '\x18Bitcoin2 Signed Message:\n',
+      bech32: '', // BTC2 does not use Bech32
+      bip32: {
+        public: 0x0488b21e,
+        private: 0x0488ade4
+      },
+      pubKeyHash: 0x00, // BTC2 uses 0x00 like Bitcoin
+      scriptHash: 0x05,
+      wif: 0x80 // WIF prefix for BTC2 (same as Bitcoin)
+    };
 
-      // Generate key pair
-      const keyPair = bitcoinjs.ECPair.makeRandom({ compressed: true });
-      const { address } = bitcoinjs.payments.p2pkh({ pubkey: keyPair.publicKey });
+    function generateWallet() {
+      const keyPair = bitcoinjs.ECPair.makeRandom({ network: btc2Network, compressed: true });
+      const { address } = bitcoinjs.payments.p2pkh({
+        pubkey: keyPair.publicKey,
+        network: btc2Network
+      });
       const wif = keyPair.toWIF();
 
-      // Display address and WIF
+      // Display key and address
       document.getElementById("address").textContent = address;
       document.getElementById("privateKey").textContent = wif;
 
-      // Generate QR codes
-      new QRCode(document.getElementById("addrQR"), {
-        text: address,
-        width: 128,
-        height: 128
-      });
-      new QRCode(document.getElementById("privQR"), {
-        text: wif,
-        width: 128,
-        height: 128
-      });
+      // Clear old QR codes
+      document.getElementById("addrQR").innerHTML = "";
+      document.getElementById("privQR").innerHTML = "";
+
+      // Generate new QR codes
+      new QRCode(document.getElementById("addrQR"), address);
+      new QRCode(document.getElementById("privQR"), wif);
     }
 
     function copyText(id) {
@@ -103,7 +110,7 @@
       });
     }
 
-    // Auto-generate wallet on load
+    // Generate wallet on load
     window.onload = generateWallet;
   </script>
 </body>
