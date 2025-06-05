@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>BTC2 Paper Wallet Generator</title>
+  <title>BTC2 Paper Wallet</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/bitcoinjs-lib/6.1.0/bitcoinjs-lib.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <style>
@@ -15,102 +15,85 @@
     }
     .wallet {
       background: #222;
-      border-radius: 16px;
       padding: 2em;
+      border-radius: 16px;
       margin: auto;
       max-width: 600px;
+    }
+    .keybox {
+      background: #000;
+      color: #0f0;
+      padding: 1em;
+      margin-top: 1em;
+      border-radius: 10px;
+      word-break: break-word;
     }
     .qr {
       margin: 1em;
     }
     button {
       background: #f80;
-      color: #000;
       border: none;
-      padding: 0.75em 1.5em;
+      color: black;
       font-weight: bold;
+      padding: 0.6em 1.2em;
       border-radius: 8px;
-      margin: 0.5em;
+      margin-top: 1em;
       cursor: pointer;
-    }
-    .keybox {
-      word-break: break-all;
-      font-size: 0.95em;
-      background: #000;
-      color: #0f0;
-      padding: 0.5em;
-      margin-top: 0.5em;
-      border-radius: 8px;
-    }
-    .section {
-      margin-bottom: 2em;
     }
   </style>
 </head>
 <body>
   <h1>BTC2 Paper Wallet Generator</h1>
-  <div class="wallet" id="wallet">
-    <div class="section">
-      <h3>Your BTC2 Address</h3>
-      <div id="addrQR" class="qr"></div>
-      <div id="address" class="keybox"></div>
-      <button onclick="copyText('address')">Copy Address</button>
-    </div>
+  <div class="wallet">
+    <h3>BTC2 Address</h3>
+    <div id="addrQR" class="qr"></div>
+    <div id="address" class="keybox"></div>
+    
+    <h3>Private Key (WIF - Compressed)</h3>
+    <div id="privQR" class="qr"></div>
+    <div id="privateKey" class="keybox"></div>
 
-    <div class="section">
-      <h3>Your Private Key (WIF - Compressed)</h3>
-      <div id="privQR" class="qr"></div>
-      <div id="privateKey" class="keybox"></div>
-      <button onclick="copyText('privateKey')">Copy WIF</button>
-    </div>
-
-    <button onclick="generateWallet()">🔁 Generate New Wallet</button>
+    <button onclick="generateWallet()">Generate New Wallet</button>
     <button onclick="window.print()">🖨 Print Wallet</button>
   </div>
 
   <script>
-    // Custom BTC2 network parameters (same as Bitcoin unless BTC2 changed them)
     const btc2Network = {
       messagePrefix: '\x18Bitcoin2 Signed Message:\n',
-      bech32: '', // BTC2 does not use Bech32
+      bech32: '',
       bip32: {
         public: 0x0488b21e,
         private: 0x0488ade4
       },
-      pubKeyHash: 0x00, // BTC2 uses 0x00 like Bitcoin
+      pubKeyHash: 0x00,
       scriptHash: 0x05,
-      wif: 0x80 // WIF prefix for BTC2 (same as Bitcoin)
+      wif: 0x80
     };
 
     function generateWallet() {
-      const keyPair = bitcoinjs.ECPair.makeRandom({ network: btc2Network, compressed: true });
+      // Generate compressed BTC2 key pair
+      const keyPair = bitcoinjs.ECPair.makeRandom({ compressed: true, network: btc2Network });
       const { address } = bitcoinjs.payments.p2pkh({
         pubkey: keyPair.publicKey,
         network: btc2Network
       });
       const wif = keyPair.toWIF();
 
-      // Display key and address
-      document.getElementById("address").textContent = address;
-      document.getElementById("privateKey").textContent = wif;
+      // Set values
+      document.getElementById('address').textContent = address;
+      document.getElementById('privateKey').textContent = wif;
 
-      // Clear old QR codes
+      // Clear QR
       document.getElementById("addrQR").innerHTML = "";
       document.getElementById("privQR").innerHTML = "";
 
-      // Generate new QR codes
-      new QRCode(document.getElementById("addrQR"), address);
-      new QRCode(document.getElementById("privQR"), wif);
+      // Generate QR codes
+      new QRCode(document.getElementById("addrQR"), { text: address, width: 128, height: 128 });
+      new QRCode(document.getElementById("privQR"), { text: wif, width: 128, height: 128 });
     }
 
-    function copyText(id) {
-      const text = document.getElementById(id).textContent;
-      navigator.clipboard.writeText(text).then(() => {
-        alert("Copied to clipboard!");
-      });
-    }
-
-    // Generate wallet on load
+    // Auto-generate on load
     window.onload = generateWallet;
   </script>
 </body>
