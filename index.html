@@ -74,25 +74,17 @@
       const { address } = bitcoinjs.payments.p2pkh({ pubkey: keyPair.publicKey });
       const wif = keyPair.toWIF();
 
+      // Set text values
       document.getElementById("address").textContent = address;
       document.getElementById("privateKey").textContent = wif;
 
-      new QRCode(document.getElementById("addrQR"), {
-        text: address,
-        width: 128,
-        height: 128
-      });
-      new QRCode(document.getElementById("privQR"), {
-        text: wif,
-        width: 128,
-        height: 128
-      });
+      // Clear old QR
+      document.getElementById("addrQR").innerHTML = "";
+      document.getElementById("privQR").innerHTML = "";
 
-      // Clear old QR codes if present
-      const oldQRs = document.querySelectorAll("canvas");
-      oldQRs.forEach((canvas, i) => {
-        if (i > 1) canvas.remove();
-      });
+      // Generate new QR
+      new QRCode(document.getElementById("addrQR"), address);
+      new QRCode(document.getElementById("privQR"), wif);
     }
 
     function copyText(id) {
@@ -102,7 +94,7 @@
       });
     }
 
-    // Auto-generate wallet on load
+    // Auto-generate on load
     generateWallet();
   </script>
 </body>
