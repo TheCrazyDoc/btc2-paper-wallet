@@ -1,41 +1,83 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
   <title>BTC2 Paper Wallet Generator</title>
-  <script src="https://unpkg.com/bitcoinjs-lib@6.1.0/dist/bitcoinjs-lib.min.js"></script>
+  <script src="https://unpkg.com/bitcoinjs-lib@6.1.0/dist/bitcoinjs.min.js"></script>
+  <style>
+    body {
+      background-color: #121212;
+      color: #f0f0f0;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding-top: 50px;
+    }
+    .wallet {
+      border: 2px solid #f60;
+      padding: 20px;
+      display: inline-block;
+      background: #1a1a1a;
+      border-radius: 10px;
+      box-shadow: 0 0 10px #f60;
+    }
+    button {
+      background-color: #f60;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 20px;
+    }
+    .label {
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    .value {
+      font-family: monospace;
+      word-break: break-all;
+      margin-bottom: 10px;
+    }
+  </style>
 </head>
 <body>
-  <h1>BTC2 Paper Wallet Generator</h1>
-  <div>
-    <p><strong>Address:</strong> <span id="address"></span></p>
-    <p><strong>Private Key (WIF):</strong> <span id="wif"></span></p>
-    <button onclick="generateWallet()">Generate Wallet</button>
+  <div class="wallet">
+    <h1>BTC2 Paper Wallet Generator</h1>
+    <div class="label">BTC2 Address</div>
+    <div id="address" class="value">...</div>
+    <div class="label">Private Key (WIF - Compressed)</div>
+    <div id="wif" class="value">...</div>
+    <button onclick="generateWallet()">🔁 Generate Wallet</button>
   </div>
 
   <script>
     function generateWallet() {
-      // BTC2 network parameters
-      const btc2Network = {
+      const btc2 = {
         messagePrefix: '\x19Bitcoin2 Signed Message:\n',
-        bech32: 'bc', // Not used for P2PKH
+        bech32: '', // Not used for BTC2
         bip32: {
           public: 0x0488b21e,
           private: 0x0488ade4
         },
-        pubKeyHash: 0x19, // 25 in decimal, addresses start with 'C'
+        pubKeyHash: 0x19, // 'C' prefix for BTC2
         scriptHash: 0x05,
         wif: 0x80
       };
 
-      // Generate key pair
-      const keyPair = bitcoin.ECPair.makeRandom({ network: btc2Network });
-      const { address } = bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey, network: btc2Network });
-      const wif = keyPair.toWIF();
+      try {
+        const keyPair = bitcoin.ECPair.makeRandom({ network: btc2 });
+        const { address } = bitcoin.payments.p2pkh({
+          pubkey: keyPair.publicKey,
+          network: btc2
+        });
+        const wif = keyPair.toWIF();
 
-      // Display the address and WIF
-      document.getElementById('address').textContent = address;
-      document.getElementById('wif').textContent = wif;
+        document.getElementById("address").textContent = address;
+        document.getElementById("wif").textContent = wif;
+      } catch (err) {
+        alert("Failed to generate wallet: " + err.message);
+      }
     }
   </script>
 </body>
