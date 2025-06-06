@@ -1,99 +1,77 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>BTC2 Paper Wallet Generator</title>
-  <script src="https://unpkg.com/bitcoinjs-lib@6.1.0/dist/bitcoinjs-lib.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background-color: #121212;
-      color: #f5f5f5;
-      text-align: center;
-      padding: 2em;
-    }
-    .wallet-box {
-      border: 1px solid #444;
-      padding: 2em;
-      border-radius: 12px;
-      background-color: #1f1f1f;
-      margin-top: 2em;
-    }
-    button {
-      padding: 1em 2em;
-      font-size: 1em;
-      background-color: #ff6600;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      margin: 1em;
-    }
-    .qr {
-      margin: 1em auto;
-    }
-    .field {
-      margin: 1em 0;
-      font-size: 1.1em;
-      word-wrap: break-word;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BTC2 Paper Wallet Generator</title>
+    <script src="https://cdn.jsdelivr.net/npm/bitcoinjs-lib@6.1.0/dist/bitcoinjs.min.js"></script>
+    <style>
+        body {
+            background: #121212;
+            color: #f7931a;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+        }
+        h1 {
+            margin-bottom: 20px;
+        }
+        .wallet {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 15px #f7931a33;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            margin: 5px 0;
+            border: none;
+            background: #333;
+            color: #fff;
+        }
+        button {
+            margin-top: 10px;
+            padding: 10px 20px;
+            background: #f7931a;
+            border: none;
+            color: #000;
+            font-weight: bold;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background: #ffa500;
+        }
+    </style>
 </head>
 <body>
-  <h1>BTC2 Paper Wallet Generator</h1>
-  <div class="wallet-box">
-    <h2>Your BTC2 Address</h2>
-    <div id="address" class="field">Click generate</div>
-    <div id="addrQR" class="qr"></div>
+    <h1>BTC2 Paper Wallet Generator</h1>
+    <div class="wallet">
+        <label>Public BTC2 Address</label>
+        <input type="text" id="address" readonly>
+        <label>Private Key (WIF - Compressed)</label>
+        <input type="text" id="wif" readonly>
+        <button onclick="generateWallet()">Generate New Wallet</button>
+        <button onclick="window.print()">Print Wallet</button>
+    </div>
 
-    <h2>Your Private Key (WIF - Compressed)</h2>
-    <div id="privateKey" class="field">Click generate</div>
-    <div id="privQR" class="qr"></div>
-
-    <button onclick="generateWallet()">🔁 Generate New Wallet</button>
-    <button onclick="window.print()">🖨 Print Wallet</button>
-  </div>
-
-  <script>
-    const btc2Network = {
-      messagePrefix: '\x18Bitcoin2 Signed Message:\n',
-      bech32: '',
-      bip32: {
-        public: 0x0488b21e,
-        private: 0x0488ade4
-      },
-      pubKeyHash: 0x00,
-      scriptHash: 0x05,
-      wif: 0x80
-    };
-
-    function generateWallet() {
-      try {
-        const keyPair = bitcoinjs.ECPair.makeRandom({ compressed: true, network: btc2Network });
-        const { address } = bitcoinjs.payments.p2pkh({ pubkey: keyPair.publicKey, network: btc2Network });
-        const wif = keyPair.toWIF();
-
-        console.log("BTC2 Address:", address);
-        console.log("WIF:", wif);
-
-        document.getElementById("address").textContent = address;
-        document.getElementById("privateKey").textContent = wif;
-
-        document.getElementById("addrQR").innerHTML = "";
-        document.getElementById("privQR").innerHTML = "";
-
-        new QRCode(document.getElementById("addrQR"), { text: address, width: 128, height: 128 });
-        new QRCode(document.getElementById("privQR"), { text: wif, width: 128, height: 128 });
-
-      } catch (err) {
-        console.error("Wallet generation failed:", err);
-        alert("Failed to generate wallet: " + err.message);
-      }
-    }
-
-    window.onload = generateWallet;
-  </script>
+    <script>
+        function generateWallet() {
+            try {
+                const keyPair = bitcoin.ECPair.makeRandom({ compressed: true });
+                const { address } = bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey });
+                const wif = keyPair.toWIF();
+                document.getElementById('address').value = address;
+                document.getElementById('wif').value = wif;
+            } catch (e) {
+                alert('Fail to generate wallet: ' + e.message);
+            }
+        }
+    </script>
 </body>
 </html>
