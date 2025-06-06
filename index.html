@@ -1,118 +1,41 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
   <title>BTC2 Paper Wallet Generator</title>
-  <style>
-    body {
-      background-color: #0f0f0f;
-      color: #f2f2f2;
-      font-family: Arial, sans-serif;
-      text-align: center;
-      padding: 30px;
-    }
-    h1 {
-      color: orange;
-    }
-    #wallet {
-      background: #1c1c1c;
-      border-radius: 10px;
-      padding: 20px;
-      display: inline-block;
-      margin-top: 20px;
-    }
-    .output {
-      font-size: 16px;
-      margin: 10px 0;
-      word-break: break-all;
-      background: #2a2a2a;
-      padding: 10px;
-      border-radius: 5px;
-    }
-    button {
-      background-color: orange;
-      color: black;
-      padding: 10px 20px;
-      font-size: 16px;
-      margin: 10px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    button:hover {
-      background-color: #ffb84d;
-    }
-  </style>
+  <script src="https://unpkg.com/bitcoinjs-lib@6.1.0/dist/bitcoinjs-lib.min.js"></script>
 </head>
 <body>
   <h1>BTC2 Paper Wallet Generator</h1>
-  <div id="wallet">
-    <div>
-      <strong>Your BTC2 Address:</strong>
-      <div id="address" class="output"></div>
-    </div>
-    <div>
-      <strong>Your Private Key (WIF - Compressed):</strong>
-      <div id="wif" class="output"></div>
-    </div>
-    <button onclick="generateWallet()">Generate New Wallet</button>
-    <button onclick="window.print()">Print Wallet</button>
+  <div>
+    <p><strong>Address:</strong> <span id="address"></span></p>
+    <p><strong>Private Key (WIF):</strong> <span id="wif"></span></p>
+    <button onclick="generateWallet()">Generate Wallet</button>
   </div>
 
   <script>
-    // Base58 encoding characters
-    const base58chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+    function generateWallet() {
+      // BTC2 network parameters
+      const btc2Network = {
+        messagePrefix: '\x19Bitcoin2 Signed Message:\n',
+        bech32: 'bc', // Not used for P2PKH
+        bip32: {
+          public: 0x0488b21e,
+          private: 0x0488ade4
+        },
+        pubKeyHash: 0x19, // 25 in decimal, addresses start with 'C'
+        scriptHash: 0x05,
+        wif: 0x80
+      };
 
-    function sha256(msg) {
-      const buffer = new TextEncoder("utf-8").encode(msg);
-      return crypto.subtle.digest("SHA-256", buffer);
-    }
+      // Generate key pair
+      const keyPair = bitcoin.ECPair.makeRandom({ network: btc2Network });
+      const { address } = bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey, network: btc2Network });
+      const wif = keyPair.toWIF();
 
-    function toHex(buffer) {
-      return Array.from(new Uint8Array(buffer)).map(b => b.toString(16).padStart(2, '0')).join('');
-    }
-
-    async function doubleSHA256(hex) {
-      let buffer = new Uint8Array(hex.match(/.{2}/g).map(byte => parseInt(byte, 16)));
-      let hash1 = await crypto.subtle.digest("SHA-256", buffer);
-      let hash2 = await crypto.subtle.digest("SHA-256", hash1);
-      return new Uint8Array(hash2);
-    }
-
-    function generatePrivateKey() {
-      let array = new Uint8Array(32);
-      crypto.getRandomValues(array);
-      return Array.from(array).map(b => b.toString(16).padStart(2, '0')).join('');
-    }
-
-    async function generateWallet() {
-      const privKeyHex = generatePrivateKey();
-      const compressedPrivKey = '80' + privKeyHex + '01';
-      const hash = await doubleSHA256(compressedPrivKey);
-      const checksum = Array.from(hash).slice(0, 4).map(b => b.toString(16).padStart(2, '0')).join('');
-      const wifHex = compressedPrivKey + checksum;
-      const wif = base58Encode(wifHex);
-
-      // For BTC2, we will just generate a dummy address with correct prefix
-      const dummyAddress = '1' + base58Encode(privKeyHex).substring(0, 33);
-
-      document.getElementById("address").textContent = dummyAddress;
-      document.getElementById("wif").textContent = wif;
-    }
-
-    function base58Encode(hexStr) {
-      let bytes = BigInt('0x' + hexStr);
-      let result = '';
-      while (bytes > 0) {
-        const mod = bytes % 58n;
-        result = base58chars[Number(mod)] + result;
-        bytes = bytes / 58n;
-      }
-      // Pad leading zeros
-      for (let i = 0; i < hexStr.length && hexStr.substr(i, 2) === '00'; i += 2) {
-        result = '1' + result;
-      }
-      return result;
+      // Display the address and WIF
+      document.getElementById('address').textContent = address;
+      document.getElementById('wif').textContent = wif;
     }
   </script>
 </body>
